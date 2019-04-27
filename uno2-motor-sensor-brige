@@ -4,7 +4,6 @@
 #define PIN_READ_1 2 
 #define PIN_READ_2 3
 
-
 #define PULSES_PER_ROTATION 946
 
 volatile unsigned int pulses1;
@@ -51,8 +50,7 @@ void loop()
  timeOld = millis();
  pulses1 = 0;
  attachInterrupt(digitalPinToInterrupt(PIN_READ_1), counter, FALLING);
-   
-   
+      
  detachInterrupt(digitalPinToInterrupt(PIN_READ_2));
  rpm = pulses2 * 1000 / PULSES_PER_ROTATION;
  Serial.println((String)"rpm2:"+rpm);
@@ -60,6 +58,5 @@ void loop()
  timeOld = millis();
  pulses2 = 0;
  attachInterrupt(digitalPinToInterrupt(PIN_READ_2), counter2, FALLING);
-   
  }
 }

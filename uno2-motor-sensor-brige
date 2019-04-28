@@ -4,6 +4,12 @@
 #define PIN_READ_1 2 
 #define PIN_READ_2 3
 
+#define rxPin1 4
+#define txPin1 5
+
+#define rxPin2 8
+#define txPin2 9
+
 #define PULSES_PER_ROTATION 946
 
 volatile unsigned int pulses1;
@@ -11,8 +17,8 @@ volatile unsigned int pulses2;
 float rpm;
 unsigned long timeOld;
 
-SoftwareSerial port1(10, 11);
-SoftwareSerial port2(8, 9);
+SoftwareSerial port1(rxPin1, txPin1);
+SoftwareSerial port2(rxPin2, txPin2);
 
 void counter()
 {
@@ -28,6 +34,12 @@ void setup()
   Serial.begin(9600);
   while (!Serial) {
   }
+  
+ pinMode(rxPin1, INPUT);
+ pinMode(txPin1, OUTPUT);
+ 
+ pinMode(rxPin2, INPUT);
+ pinMode(txPin2, OUTPUT);
 
  port1.begin(9600);
  port2.begin(9600);
@@ -50,7 +62,8 @@ void loop()
  timeOld = millis();
  pulses1 = 0;
  attachInterrupt(digitalPinToInterrupt(PIN_READ_1), counter, FALLING);
-      
+   
+   
  detachInterrupt(digitalPinToInterrupt(PIN_READ_2));
  rpm = pulses2 * 1000 / PULSES_PER_ROTATION;
  Serial.println((String)"rpm2:"+rpm);
@@ -58,5 +71,6 @@ void loop()
  timeOld = millis();
  pulses2 = 0;
  attachInterrupt(digitalPinToInterrupt(PIN_READ_2), counter2, FALLING);
+   
  }
 }

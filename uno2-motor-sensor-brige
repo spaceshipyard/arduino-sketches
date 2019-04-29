@@ -62,7 +62,7 @@ void loop()
  port1.println(rpm);
  timeOld = millis();
  pulses1 = 0;
- attachInterrupt(digitalPinToInterrupt(PIN_READ_1), counter, FALLING);
+ attachInterrupt(digitalPinToInterrupt(PIN_READ_1), counter1, FALLING);
    
    
  detachInterrupt(digitalPinToInterrupt(PIN_READ_2));

@@ -20,7 +20,7 @@ unsigned long timeOld;
 SoftwareSerial port1(rxPin1, txPin1);
 SoftwareSerial port2(rxPin2, txPin2);
 
-void counter()
+void counter1()
 {
  pulses1++;
 }
@@ -48,7 +48,8 @@ void setup()
  pulses1 = 0;
  pulses2 = 0;
  timeOld = 0;
- attachInterrupt(digitalPinToInterrupt(PIN_READ_1), counter, FALLING);
+ attachInterrupt(digitalPinToInterrupt(PIN_READ_1), counter1, FALLING);
+ attachInterrupt(digitalPinToInterrupt(PIN_READ_2), counter2, FALLING);
 }
  
 void loop()

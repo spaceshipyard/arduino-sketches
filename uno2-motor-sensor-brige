@@ -35,6 +35,8 @@ void setup()
   while (!Serial) {
   }
   
+ pinMode(LED_BUILTIN, OUTPUT);
+   
  pinMode(rxPin1, INPUT);
  pinMode(txPin1, OUTPUT);
  
@@ -54,8 +56,11 @@ void setup()
  
 void loop()
 {
+ digitalWrite(LED_BUILTIN, HIGH);   
  if (millis() - timeOld >= 1000)
  {
+ digitalWrite(LED_BUILTIN, LOW);    
+ 
  detachInterrupt(digitalPinToInterrupt(PIN_READ_1));
  rpm = pulses1 * 1000 / PULSES_PER_ROTATION;
  Serial.println((String)"rpm1:"+rpm);
@@ -64,14 +69,11 @@ void loop()
  pulses1 = 0;
  attachInterrupt(digitalPinToInterrupt(PIN_READ_1), counter1, FALLING);
    
-   
  detachInterrupt(digitalPinToInterrupt(PIN_READ_2));
  rpm = pulses2 * 1000 / PULSES_PER_ROTATION;
  Serial.println((String)"rpm2:"+rpm);
  port2.println(rpm);
  timeOld = millis();
  pulses2 = 0;
- attachInterrupt(digitalPinToInterrupt(PIN_READ_2), counter2, FALLING);
-   
  }
 }

@@ -1,0 +1,79 @@
+// !!! WORK IN PROGRESS / NOT TESTED !!!
+
+// Wire - Version: Latest 
+#include <Wire.h>
+
+#define PIN_READ_1 2 
+#define PIN_READ_2 3
+
+#define I2C_CHANNEL_1 1
+#define I2C_CHANNEL_2 2
+
+#define PULSES_PER_ROTATION 946
+
+volatile unsigned int pulses1;
+volatile unsigned int pulses2;
+float rpm;
+unsigned long timeOld;
+
+void counter1()
+{
+ pulses1++;
+}
+void counter2()
+{
+ pulses2++;
+}
+ 
+void setup()
+{
+ Serial.begin(9600);
+ while (!Serial) {
+ }
+ 
+ Wire.begin();
+ 
+ pinMode(LED_BUILTIN, OUTPUT);
+  
+ pinMode(PIN_READ_1, INPUT);
+ pinMode(PIN_READ_2, INPUT);
+ 
+ pulses1 = 0;
+ pulses2 = 0;
+ timeOld = 0;
+ attachInterrupt(digitalPinToInterrupt(PIN_READ_1), counter1, FALLING);
+ attachInterrupt(digitalPinToInterrupt(PIN_READ_2), counter2, FALLING);
+}
+ 
+void loop()
+{
+ digitalWrite(LED_BUILTIN, HIGH);   
+ if (millis() - timeOld >= 1000)
+ {
+   digitalWrite(LED_BUILTIN, LOW);    
+   
+   detachInterrupt(digitalPinToInterrupt(PIN_READ_1));
+   rpm = pulses1 * 1000 / PULSES_PER_ROTATION;
+   Serial.println((String)"rpm1:"+rpm);
+   sendRpm(I2C_CHANNEL_1);
+   
+   detachInterrupt(digitalPinToInterrupt(PIN_READ_2));
+   rpm = pulses2 * 1000 / PULSES_PER_ROTATION;
+   Serial.println((String)"rpm2:"+rpm);
+   sendRpm(I2C_CHANNEL_2);
+   
+   timeOld = millis();
+   pulses1 = 0;
+   pulses2 = 0; 
+   attachInterrupt(digitalPinToInterrupt(PIN_READ_1), counter1, FALLING);
+   attachInterrupt(digitalPinToInterrupt(PIN_READ_2), counter2, FALLING);
+ }
+}
+
+void sendRpm(int channel) {
+  if(rpm != 0){
+   Wire.beginTransmission(channel); 
+   Wire.write((uint8_t*) round(rpm), 4);              
+   Wire.endTransmission();    
+  }
+}

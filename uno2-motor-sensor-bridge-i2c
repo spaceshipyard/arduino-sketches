@@ -6,9 +6,6 @@
 #define PIN_READ_1 2 
 #define PIN_READ_2 3
 
-#define I2C_CHANNEL_1 1
-#define I2C_CHANNEL_2 2
-
 #define PULSES_PER_ROTATION 946
 
 volatile unsigned int pulses1;
@@ -31,7 +28,7 @@ void setup()
  while (!Serial) {
  }
  
- Wire.begin();
+ Wire.begin(1);
  
  pinMode(LED_BUILTIN, OUTPUT);
   
@@ -47,20 +44,20 @@ void setup()
  
 void loop()
 {
- digitalWrite(LED_BUILTIN, HIGH);   
+ digitalWrite(LED_BUILTIN, HIGH);  
+ debugBlink(millis() - timeOld);
+   
  if (millis() - timeOld >= 1000)
  {
-   digitalWrite(LED_BUILTIN, LOW);    
-   
    detachInterrupt(digitalPinToInterrupt(PIN_READ_1));
    rpm = pulses1 * 1000 / PULSES_PER_ROTATION;
    Serial.println((String)"rpm1:"+rpm);
-   sendRpm(I2C_CHANNEL_1);
+   sendRpm(1);
    
    detachInterrupt(digitalPinToInterrupt(PIN_READ_2));
    rpm = pulses2 * 1000 / PULSES_PER_ROTATION;
    Serial.println((String)"rpm2:"+rpm);
-   sendRpm(I2C_CHANNEL_2);
+   sendRpm(2);
    
    timeOld = millis();
    pulses1 = 0;
@@ -72,9 +69,28 @@ void loop()
 
 void sendRpm(int channel) {
   if(rpm != 0){
-   Wire.beginTransmission(channel); 
+   Wire.beginTransmission(0); 
    Wire.write((uint8_t*) round(rpm), 4);    
    Serial.println((String)"sent:"+(round(rpm))+" channel:"+channel);
    Wire.endTransmission();    
   }
+}
+
+void debugBlink(int diff){
+ if (diff >= 100)
+ {
+   digitalWrite(LED_BUILTIN, LOW);    
+ }
+ if (diff >= 200)
+ {
+   digitalWrite(LED_BUILTIN, HIGH);    
+ }
+ if (diff >= 300)
+ {
+   digitalWrite(LED_BUILTIN, LOW);    
+ }
+ if (diff >= 400)
+ {
+   digitalWrite(LED_BUILTIN, HIGH);    
+ }
 }

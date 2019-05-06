@@ -73,7 +73,8 @@ void loop()
 void sendRpm(int channel) {
   if(rpm != 0){
    Wire.beginTransmission(channel); 
-   Wire.write((uint8_t*) round(rpm), 4);              
+   Wire.write((uint8_t*) round(rpm), 4);    
+   Serial.println((String)"sent:"+(round(rpm))+" channel:"+channel);
    Wire.endTransmission();    
   }
 }

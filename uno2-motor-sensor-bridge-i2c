@@ -29,6 +29,7 @@ void setup()
  }
  
  Wire.begin(1);
+ Wire.onRequest(sendRpm);
  
  pinMode(LED_BUILTIN, OUTPUT);
   
@@ -52,12 +53,14 @@ void loop()
    detachInterrupt(digitalPinToInterrupt(PIN_READ_1));
    rpm = pulses1 * 1000 / PULSES_PER_ROTATION;
    Serial.println((String)"rpm1:"+rpm);
-   sendRpm(1);
+   //sendRpm(1);
    
+   /*
    detachInterrupt(digitalPinToInterrupt(PIN_READ_2));
    rpm = pulses2 * 1000 / PULSES_PER_ROTATION;
    Serial.println((String)"rpm2:"+rpm);
    sendRpm(2);
+   */
    
    timeOld = millis();
    pulses1 = 0;
@@ -67,13 +70,9 @@ void loop()
  }
 }
 
-void sendRpm(int channel) {
-  if(rpm != 0){
-   Wire.beginTransmission(0); 
-   Wire.write((uint8_t*) round(rpm), 4);    
-   Serial.println((String)"sent:"+(round(rpm))+" channel:"+channel);
-   Wire.endTransmission();    
-  }
+void sendRpm() {
+  Wire.write((uint8_t*) round(rpm), 4);    
+  Serial.println((String)"sent:"+(round(rpm)));
 }
 
 void debugBlink(int diff){

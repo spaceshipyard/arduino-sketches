@@ -71,7 +71,7 @@ void loop()
 }
 
 void sendRpm() {
-  Wire.write((uint8_t*) round(rpm), 4);    
+  Wire.write(round(rpm));    
   Serial.println((String)"sent:"+(round(rpm)));
 }
 
@@ -93,3 +93,4 @@ void debugBlink(int diff){
    digitalWrite(LED_BUILTIN, HIGH);    
  }
 }
+

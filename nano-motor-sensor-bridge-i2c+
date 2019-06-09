@@ -1,0 +1,94 @@
+// Wire - Version: Latest 
+#include <Wire.h>
+
+#define PIN_READ_1 2 
+#define PIN_READ_2 3
+
+#define PULSES_PER_ROTATION 946
+
+volatile unsigned int pulses1;
+volatile unsigned int pulses2;
+float rpm1 = 0;
+float rpm2 = 0;
+unsigned long timeOld;
+byte buffer[2] = {0,0};
+void counter1()
+{
+ pulses1++;
+}
+void counter2()
+{
+ pulses2++;
+}
+ 
+void setup()
+{
+ Serial.begin(9600);
+ while (!Serial) {
+ }
+ 
+ Wire.begin(2);
+ Wire.onRequest(sendRpms);
+ 
+ pinMode(LED_BUILTIN, OUTPUT);
+  
+ pinMode(PIN_READ_1, INPUT);
+ pinMode(PIN_READ_2, INPUT);
+ 
+ pulses1 = 0;
+ pulses2 = 0;
+ timeOld = 0;
+ 
+ attachInterrupt(digitalPinToInterrupt(PIN_READ_1), counter1, FALLING);
+ attachInterrupt(digitalPinToInterrupt(PIN_READ_2), counter2, FALLING);
+}
+ 
+void loop()
+{
+ digitalWrite(LED_BUILTIN, HIGH);  
+ debugBlink(millis() - timeOld);
+   
+ if (millis() - timeOld >= 1000)
+ {
+   detachInterrupt(digitalPinToInterrupt(PIN_READ_1));
+   rpm1 = pulses1 * 1000 / PULSES_PER_ROTATION;
+   Serial.println((String)"rpm1:"+rpm1);
+
+   detachInterrupt(digitalPinToInterrupt(PIN_READ_2));
+   rpm2 = pulses2 * 1000 / PULSES_PER_ROTATION;
+   Serial.println((String)"rpm2:"+rpm2);
+  
+   timeOld = millis();
+   pulses1 = 0;
+   pulses2 = 0; 
+   attachInterrupt(digitalPinToInterrupt(PIN_READ_1), counter1, FALLING);
+   attachInterrupt(digitalPinToInterrupt(PIN_READ_2), counter2, FALLING);
+ }
+}
+
+void sendRpms() {
+  buffer[0] = round(rpm1);
+  buffer[1] = round(rpm2);
+  
+  Wire.write(buffer, 2);
+  Serial.println((String)"sent:"+(round(rpm1))+(round(rpm2)));
+}
+
+void debugBlink(int diff){
+ if (diff >= 100)
+ {
+   digitalWrite(LED_BUILTIN, LOW);    
+ }
+ if (diff >= 200)
+ {
+   digitalWrite(LED_BUILTIN, HIGH);    
+ }
+ if (diff >= 300)
+ {
+   digitalWrite(LED_BUILTIN, LOW);    
+ }
+ if (diff >= 400)
+ {
+   digitalWrite(LED_BUILTIN, HIGH);    
+ }
+}

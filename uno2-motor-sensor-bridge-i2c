@@ -1,95 +1,60 @@
-// Wire - Version: Latest 
+// found code here https://dronebotworkshop.com/robot-car-with-speed-sensors/
+#include "TimerOne.h"
 #include <Wire.h>
 
-#define PIN_READ_1 2 
-#define PIN_READ_2 3
+const byte MOTOR1 = 2;  // Motor 1 Interrupt Pin - INT 0
+const byte MOTOR2 = 3;  // Motor 2 Interrupt Pin - INT 1
+ 
+unsigned int counter1 = 0;
+unsigned int counter2 = 0;
+ 
+float diskslots = 11;  
 
-#define PULSES_PER_ROTATION 946
-
-volatile unsigned int pulses1;
-volatile unsigned int pulses2;
-float rpm1 = 0;
-float rpm2 = 0;
-unsigned long timeOld;
+float rotation1;
+float rotation2;
 byte buffer[2] = {0,0};
-void counter1()
-{
- pulses1++;
-}
-void counter2()
-{
- pulses2++;
-}
- 
-void setup()
-{
- Serial.begin(9600);
- while (!Serial) {
- }
- 
- Wire.begin(1);
- Wire.onRequest(sendRpms);
- 
- pinMode(LED_BUILTIN, OUTPUT);
-  
- pinMode(PIN_READ_1, INPUT);
- pinMode(PIN_READ_2, INPUT);
- 
- pulses1 = 0;
- pulses2 = 0;
- timeOld = 0;
- 
- attachInterrupt(digitalPinToInterrupt(PIN_READ_1), counter1, FALLING);
- attachInterrupt(digitalPinToInterrupt(PIN_READ_2), counter2, FALLING);
-}
- 
-void loop()
-{
- digitalWrite(LED_BUILTIN, HIGH);  
- debugBlink(millis() - timeOld);
-   
- if (millis() - timeOld >= 1000)
- {
-   detachInterrupt(digitalPinToInterrupt(PIN_READ_1));
-   rpm1 = pulses1 * 1000 / PULSES_PER_ROTATION;
-   Serial.println((String)"rpm1:"+rpm1);
 
-   detachInterrupt(digitalPinToInterrupt(PIN_READ_2));
-   rpm2 = pulses2 * 1000 / PULSES_PER_ROTATION;
-   Serial.println((String)"rpm2:"+rpm2);
-  
-   timeOld = millis();
-   pulses1 = 0;
-   pulses2 = 0; 
-   attachInterrupt(digitalPinToInterrupt(PIN_READ_1), counter1, FALLING);
-   attachInterrupt(digitalPinToInterrupt(PIN_READ_2), counter2, FALLING);
- }
+void ISR_count1()  {  counter1++; } 
+void ISR_count2()  { counter2++; } 
+ 
+// TimerOne ISR
+void ISR_timerone()
+{
+  Timer1.detachInterrupt();  // Stop the timer
+  Serial.print("Motor Speed 1: "); 
+  rotation1 = (counter1 / diskslots);  
+  Serial.print(round(rotation1));  
+  Serial.print(" RPM - "); 
+  counter1 = 0;  //  reset counter to zero
+  Serial.print("Motor Speed 2: "); 
+  rotation2 = (counter2 / diskslots);  
+  Serial.print(round(rotation2));  
+  Serial.println(" RPM"); 
+  counter2 = 0;  //  reset counter to zero
+  Timer1.attachInterrupt( ISR_timerone );  // Enable the timer
 }
+ 
+void setup() 
+{
+  Serial.begin(9600);
+  
+  Timer1.initialize(1000000); // set timer for 1sec
+  attachInterrupt(digitalPinToInterrupt (MOTOR1), ISR_count1, RISING);  // Increase counter 1 when speed sensor pin goes High
+  attachInterrupt(digitalPinToInterrupt (MOTOR2), ISR_count2, RISING);  // Increase counter 2 when speed sensor pin goes High
+  Timer1.attachInterrupt( ISR_timerone ); // Enable the timer
+  
+  Wire.begin(1);
+  Wire.onRequest(sendRpms);
+} 
 
 void sendRpms() {
-  buffer[0] = round(rpm1);
-  buffer[1] = round(rpm2);
+  buffer[0] = round(rotation1);
+  buffer[1] = round(rotation2);
   
   Wire.write(buffer, 2);
-  Serial.println((String)"sent:"+(round(rpm1))+(round(rpm2)));
 }
 
-void debugBlink(int diff){
- if (diff >= 100)
- {
-   digitalWrite(LED_BUILTIN, LOW);    
- }
- if (diff >= 200)
- {
-   digitalWrite(LED_BUILTIN, HIGH);    
- }
- if (diff >= 300)
- {
-   digitalWrite(LED_BUILTIN, LOW);    
- }
- if (diff >= 400)
- {
-   digitalWrite(LED_BUILTIN, HIGH);    
- }
+void loop()
+{
+  
 }
-
